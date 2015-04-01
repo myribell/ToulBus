@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 osm-tchoutchou
 ==============
 
@@ -16,3 +17,6 @@ Just clone the repository wherever you want on your web server. It's only static
 Licence :
 ---------
 CC by-sa / GNU AGPL
+=======
+# ToulBus
+>>>>>>> 3720d6530c1f8fafbb33f5dbf3f446fbf6ee9290
