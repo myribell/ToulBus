@@ -4,7 +4,7 @@ var HandlebarsUtil = {
 		render:function(template,context){
 				var out = "";
 				if(HandlebarsUtil.templates[template] == null){
-					var url = HandlebarsUtil.base+template+".tpl";
+					var url = HandlebarsUtil.base+template+".txt";
 					jQuery.ajax(url,{
 						async : false,
 						cache : false,

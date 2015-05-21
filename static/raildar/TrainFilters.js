@@ -1,7 +1,7 @@
 
 var TrainFilters = {
 	visible : [""],
-	num_train : "",
+	num : "",
 	bounds : {
 		_southWest : {
 			lat : -200,

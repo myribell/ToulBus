@@ -1,6 +1,6 @@
 var worker = this;
 
-importScripts('./Vehicle.js', './TrainFilters.js', '../spark-md5.min.js', '../moment.min.js', '../moment.fr.js', '../underscore-min.js');
+importScripts('./Train.js', './TrainFilters.js', '../spark-md5.min.js', '../moment.min.js', '../moment.fr.js', '../underscore-min.js');
 
 moment.lang('fr');
 
@@ -52,18 +52,7 @@ var getJSON = function(url, _options) {
 		//console.error(e);
 	}
 };
-
-Object.size = function(obj) {
-	var size = 0, key;
-	for (key in obj) {
-		if (obj.hasOwnProperty(key)) size ++;
-	}
-	return size;
-	alert(size);
-};
-
-
-var Vehicles = {};
+var Trains = {};
 var lastCirculationMD5 = null;
 var filtersUpdated = false;
 var runningXHR = null;
@@ -78,7 +67,7 @@ var handlers = {
 		if(runningXHR){
 			runningXHR.abort();
 		}
-		getJSON("StaticData.json", {
+		 getJSON("http://www.raildar.fr/json/get_circulation.json", {
 			data : options.data,
 			cache : false,
 			error : function(jqXHR, textStatus, errorThrown) {
@@ -95,80 +84,47 @@ var handlers = {
 				//var d2 = new Date();
 				var md5 = SparkMD5.hash(jqXHR.responseText);
 				//console.log("md5 : "+(new Date().getTime() - d2.getTime())+'ms');
-				//console.log(data.lines[0].destinations[0]);
-				
 				if(md5 != lastCirculationMD5 || filtersUpdated) {
-					
 					lastCirculationMD5 = md5;
 					filtersUpdated = false;
 					var missions = [];
 					var trains = {};
 					var stats = {ttl:0};
-					var sizeLines = Object.size(data.lines);
-					for(i = 0; i < sizeLines; i++){
-						var sizeDestinations = Object.size(data.lines[i].destinations);
+					for(var i = 0; i< data.features.length; i++){
+						var mission = new Train(data.features[i]); // ******** Nouveau train ici -> new Bus *************
 						
-						for( j = 0; j < sizeDestinations; j++){
-							var sizeVehicle = Object.size(data.lines[i].destinations[j].vehiclejourneys);
-							var k = 0;
-							while( k < sizeVehicle){
-								
-								
-								var mission = new Vehicle(data.lines[i].destinations[j].vehiclejourneys[k]);
-								var str = data.lines[i].destinations[j].id;
-								mission.lineID = str.split("|")[0];
-								mission.operatorID = data.lines[i].operatorid;
-								mission.terminus = data.lines[i].destinations[j].display;
-								
-								if("TISSEO" == 	mission.operatorID){
-									mission.brand = "BUS";
-									mission.num = data.lines[i].sname;
-									
-								}else{
-									mission.brand = "TER";
-									mission.num = mission.name;
-								} 	
-								
-								
-								// Block générant les stats
-								if(!(mission.statusDelay in stats)){
-									//console.info("Nouveau type : ",mission.type);
-									stats[mission.statusDelay] = 1;
-								}else{
-									stats[mission.statusDelay]  += 1;
-								}
-								if(!(mission.type in stats)){
-									//console.info("Nouveau type : ",mission.type);
-									stats[mission.type] = 1;
-								}else{
-									stats[mission.type]  += 1;
-								}
-								stats['ttl']  += 1;
-								
-								if(Vehicle.isVisible(mission,TrainFilters) || 'id' in options.data){
-									missions.push(mission);
-									trains[mission.id] = true;
-									delete(Vehicles[mission.id]);
-								}else{
-									delete(mission);
-								}
-								k++;
-							}
+						if(!(mission.status in stats)){
+							//console.info("Nouveau type : ",mission.type);
+							stats[mission.status] = 1;
+						}else{
+							stats[mission.status]  += 1;
 						}
-						//var mission = new Train(data.lines[i]); // ******** Nouveau train ici -> new Bus *************
+						if(!(mission.type in stats)){
+							//console.info("Nouveau type : ",mission.type);
+							stats[mission.type] = 1;
+						}else{
+							stats[mission.type]  += 1;
+						}
+						stats['ttl']  += 1;
 						
-						
+						if(Train.isVisible(mission,TrainFilters) || 'id_mission' in options.data){
+							missions.push(mission);
+							trains[mission.id_mission] = true;
+							delete(Trains[mission.id_mission]);
+						}else{
+							delete(mission);
+						}
 					}
 					worker.postMessage({
 						type : "circulation_success",
 						data : {
 							missions : missions,
-							remove : Vehicles,
+							remove : Trains,
 							stats : stats
 						}
 					});
-					delete(Vehicles);
-					Vehicles = trains;
+					delete(Trains);
+					Trains = trains;
 					delete(stats);
 				}else{
 					//console.info("Nothing to update");

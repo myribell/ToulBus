@@ -32,9 +32,10 @@ var position_type = {
 
 
 var Train = function(mission){
-	this.lng = mission.geometry.coordinates[0];
-	this.lat = mission.geometry.coordinates[1];
+	this.lng = mission.lon;
+	this.lat = mission.lat;
 	
+	// *********************************
 	for(k in mission.properties){
 		this[k] = mission.properties[k];
 	}
